@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols, ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="pulse" aria-hidden="true"><span></span></div>
+    <div>
+      <h1>TOKEN RADAR</h1>
+      <p class="sub">Pre-token protocols, ranked by what a launch would be worth.</p>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="board" class="active">Board</button>
+  <button data-tab="live">Live tokens</button>
+  <button data-tab="comps">Calibration</button>
+  <button data-tab="model">How it works</button>
+</nav>
+
+<section id="tab-board" class="tab active">
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search name or slug…" aria-label="Search">
+    <select id="cat" aria-label="Category"><option value="">All categories</option></select>
+    <select id="chain" aria-label="Chain"><option value="">All chains</option></select>
+    <label class="check"><input id="watch" type="checkbox"> Watchlist only</label>
+    <select id="sort" aria-label="Sort">
+      <option value="rank">Sort: rank</option>
+      <option value="implied_value_usd">Sort: implied value</option>
+      <option value="tvl_usd">Sort: TVL</option>
+      <option value="change_7d">Sort: 7-day change</option>
+      <option value="age_days">Sort: age</option>
+    </select>
+  </div>
+  <p class="count" id="count"></p>
+  <div class="tablewrap">
+    <table id="board">
+      <thead><tr>
+        <th>#</th><th>Protocol</th><th>Category</th><th>Chains</th>
+        <th class="num">TVL</th><th class="num">7d</th><th class="num">Implied value</th><th class="num">Multiple</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div id="detail" class="detail" hidden></div>
+</section>
+
+<section id="tab-live" class="tab">
+  <p class="note">These protocols already trade. The board shows the market's own value for them, never a model's — they are the comps the multiples are calibrated from.</p>
+  <div class="tablewrap">
+    <table id="live">
+      <thead><tr><th>Protocol</th><th>Category</th><th>Chains</th><th class="num">TVL</th><th class="num">Market cap</th><th class="num">mcap / TVL</th><th class="num">7d</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="tab-comps" class="tab">
+  <p class="note">Each category's multiple is the median market-cap / TVL ratio of its tokenized comps, winsorized to [0.02, 2.5], then shrunk toward the global median — used = (n × median + 4 × global) / (n + 4) — so a category with one comp cannot set an extreme multiple.</p>
+  <div class="tablewrap">
+    <table id="comps">
+      <thead><tr><th>Category</th><th class="num">Comps</th><th class="num">Median multiple</th><th class="num">Multiple used</th><th class="num">Median TVL</th><th class="num">Median mcap</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="tab-model" class="tab">
+  <div class="modelcard">
+    <h2>How the value is worked out</h2>
+    <p>Every figure comes from the sealed snapshot (DefiLlama, <span id="asof"></span>). No name is ever special-cased.</p>
+    <ol class="formula">
+      <li><b>Multiple.</b> The protocol's category multiple from the Calibration tab.</li>
+      <li><b>Base.</b> TVL × multiple.</li>
+      <li><b>Growth.</b> 1 + clamp(7-day TVL change, −60%, +120%) / 100 × 0.5.</li>
+      <li><b>Maturity.</b> 0.6 + min(age in days, 1095) / 1095 × 0.4. Unknown age counts as 365 days.</li>
+      <li><b>Breadth.</b> 1 + 0.02 per extra chain, at most 1.10.</li>
+      <li><b>Implied value.</b> Base × growth × maturity × breadth, rounded to whole dollars.</li>
+    </ol>
+    <h2>What "pre-token" means</h2>
+    <p>A protocol <b>records</b> no token when DefiLlama carries no market cap, no CoinGecko id and no symbol for it. That is a record, not proof — a listed protocol may still have a token its record does not carry. Wrapped, staked and bridged products of tokens that already trade are kept off the board.</p>
+    <h2>Farm plans</h2>
+    <p>Each row carries six steps derived from the protocol's own record — its category, its chains, its TVL and its age — with what each step costs and how long it takes. Nothing here predicts whether or when a token is issued.</p>
+  </div>
+</section>
+
+<footer>
+  <span id="source"></span>
+  <span>Implied values are this entry's own claim, never make.fun's. No network is used: this page renders from its own data file.</span>
+</footer>
+
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
